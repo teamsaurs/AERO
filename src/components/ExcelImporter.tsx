@@ -90,23 +90,23 @@ export default function ExcelImporter({ onImportMockData }: ExcelImporterProps) 
   };
 
   return (
-    <div className="bg-white border border-[#D1D1CD] p-6 space-y-6 rounded-none" id="excel-importer-view">
-      <div className="border-b border-[#D1D1CD] pb-4 space-y-1.5">
-        <h3 className="text-sm font-bold uppercase tracking-widest text-[#1A1A1A] flex items-center gap-1.5">
-          <FileSpreadsheet className="w-5 h-5 text-[#1A1A1A]" />
+    <div className="bg-apple-canvas border border-apple-hairline/60 p-6 md:p-8 space-y-6 rounded-[18px] shadow-sm" id="excel-importer-view">
+      <div className="border-b border-apple-hairline/60 pb-5 space-y-2">
+        <h3 className="text-sm font-bold uppercase tracking-widest text-apple-ink flex items-center gap-1.5 font-sans">
+          <FileSpreadsheet className="w-5 h-5 text-apple-blue" />
           ERP/PLM & CATIA 외부 자재 데이터 병합 시스템 (Step 1)
         </h3>
-        <p className="text-xs text-slate-500 leading-relaxed font-serif italic">
+        <p className="text-xs text-apple-muted leading-relaxed font-sans">
           서로 다른 시스템인 CATIA 3D 도면 추출 원시자재 명세와 ERP 전산 재고 마스터 엑셀을 업로드하여 <br />
           Sync-BOM 실시간 정합 테이블과 통합 병합(Merge)합니다.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         
         {/* Left Drag/Drop simulation card */}
         <div className="space-y-4">
-          <span className="text-[10px] uppercase tracking-widest font-bold text-[#666666] block">
+          <span className="text-[10px] uppercase tracking-widest font-bold text-apple-muted block font-sans">
             전산 보고서 드래그 앤 드롭 업로드
           </span>
 
@@ -116,41 +116,43 @@ export default function ExcelImporter({ onImportMockData }: ExcelImporterProps) 
             onDragOver={handleDrag}
             onDragLeave={handleDrag}
             onDrop={handleDrop}
-            className={`border border-dashed p-8 text-center flex flex-col items-center justify-center space-y-3 transition-all cursor-pointer rounded-none ${
+            className={`border border-dashed p-8 text-center flex flex-col items-center justify-center space-y-4 transition-all cursor-pointer rounded-2xl ${
               dragActive 
-                ? "border-[#1A1A1A] bg-[#E9E9E5]/40" 
-                : "border-[#D1D1CD] hover:border-[#1A1A1A] bg-[#F4F4F2]/30 hover:bg-[#F4F4F2]/50"
+                ? "border-apple-blue bg-apple-blue/5" 
+                : "border-apple-hairline bg-apple-parchment/40 hover:bg-apple-parchment/80 hover:border-apple-muted"
             }`}
           >
-            <Upload className="w-8 h-8 text-[#1A1A1A]" />
-            <div>
-              <p className="text-xs font-bold text-[#1A1A1A] uppercase tracking-wider">엑셀(.xlsx) 또는 CSV 파일을 여기로 끌어놓으세요</p>
-              <p className="text-[10px] text-[#666666] mt-1 font-mono uppercase">MAX SIZE: 20MB / SECURE TUNNELLING ENABLED</p>
+            <div className="w-12 h-12 bg-white rounded-full border border-apple-hairline/80 flex items-center justify-center shadow-sm">
+              <Upload className="w-5 h-5 text-apple-blue" />
             </div>
-            <div className="flex gap-2 pt-2">
+            <div>
+              <p className="text-xs font-bold text-apple-ink uppercase tracking-wider font-sans">엑셀(.xlsx) 또는 CSV 파일을 여기로 끌어놓으세요</p>
+              <p className="text-[10px] text-apple-muted mt-1 font-mono uppercase">MAX SIZE: 20MB / SECURE TUNNELLING ENABLED</p>
+            </div>
+            <div className="flex flex-wrap gap-2 pt-2 justify-center">
               <button
                 id="btn-import-catia-sample"
                 onClick={() => triggerMockImport("CATIA")}
-                className="px-3.5 py-2 bg-white border border-[#D1D1CD] text-[#1A1A1A] hover:border-[#1A1A1A] text-[10px] font-bold uppercase tracking-wider transition-all flex items-center gap-1 cursor-pointer rounded-none"
+                className="px-4 py-2 bg-white hover:bg-apple-parchment/60 border border-apple-hairline text-xs font-semibold rounded-full cursor-pointer active-scale flex items-center gap-1.5 transition-all"
               >
-                <FileText className="w-3.5 h-3.5 text-slate-500" /> 3D CATIA 덤프
+                <FileText className="w-4 h-4 text-apple-muted" /> 3D CATIA 덤프
               </button>
               <button
                 id="btn-import-erp-sample"
                 onClick={() => triggerMockImport("ERP")}
-                className="px-3.5 py-2 bg-white border border-[#D1D1CD] text-[#1A1A1A] hover:border-[#1A1A1A] text-[10px] font-bold uppercase tracking-wider transition-all flex items-center gap-1 cursor-pointer rounded-none"
+                className="px-4 py-2 bg-white hover:bg-apple-parchment/60 border border-apple-hairline text-xs font-semibold rounded-full cursor-pointer active-scale flex items-center gap-1.5 transition-all"
               >
-                <Database className="w-3.5 h-3.5 text-slate-500" /> ERP 자재 보고서
+                <Database className="w-4 h-4 text-apple-muted" /> ERP 자재 보고서
               </button>
             </div>
           </div>
 
           {success && (
-            <div className="p-4 bg-green-50 border border-green-200 text-green-950 text-xs flex items-center gap-2 animate-fade-in rounded-none" id="import-success-toast">
-              <CheckCircle className="w-5 h-5 text-green-700" />
+            <div className="p-4 bg-emerald-50 border border-emerald-100 text-emerald-950 text-xs flex items-center gap-3 animate-fade-in rounded-xl" id="import-success-toast">
+              <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0" />
               <div>
                 <p className="font-bold">데이터 병합 및 매핑 완료!</p>
-                <p className="text-green-800 mt-0.5">외부 보고서 구조체에서 HW로 시작되는 품번을 매핑 완료하고 불일치 항목을 식별했습니다.</p>
+                <p className="text-emerald-800 mt-0.5">외부 보고서 구조체에서 HW로 시작되는 품번을 매핑 완료하고 불일치 항목을 식별했습니다.</p>
               </div>
             </div>
           )}
@@ -158,26 +160,26 @@ export default function ExcelImporter({ onImportMockData }: ExcelImporterProps) 
 
         {/* Right Preview column */}
         <div className="space-y-4">
-          <span className="text-[10px] uppercase tracking-widest font-bold text-[#666666] block">
+          <span className="text-[10px] uppercase tracking-widest font-bold text-apple-muted block font-sans">
             업로드 파일 정합성 분석 대기열
           </span>
 
           {isLoading ? (
-            <div className="h-[210px] border border-[#D1D1CD] flex flex-col items-center justify-center space-y-2 bg-[#F4F4F2]/30 rounded-none" id="import-loading-state">
-              <RefreshCw className="w-6 h-6 text-[#1A1A1A] animate-spin" />
-              <span className="text-[10px] uppercase font-mono tracking-widest font-bold text-slate-600">사내 망 암호 해독 및 파싱 데이터 검사 중...</span>
+            <div className="h-[210px] border border-dashed border-apple-hairline flex flex-col items-center justify-center space-y-2 bg-apple-parchment/40 rounded-2xl" id="import-loading-state">
+              <RefreshCw className="w-6 h-6 text-apple-ink animate-spin" />
+              <span className="text-[10px] uppercase font-mono tracking-widest font-bold text-apple-muted">사내 망 암호 해독 및 파싱 데이터 검사 중...</span>
             </div>
           ) : importedFile ? (
-            <div className="border border-[#D1D1CD] overflow-hidden bg-white rounded-none" id="import-preview-box">
+            <div className="border border-apple-hairline/60 overflow-hidden bg-white rounded-2xl shadow-sm" id="import-preview-box">
               {/* File Info */}
-              <div className="bg-[#1A1A1A] text-white p-3.5 flex justify-between items-center text-xs">
+              <div className="bg-[#1d1d1f] text-white p-4 flex justify-between items-center text-xs">
                 <div className="flex items-center gap-2">
-                  <FileSpreadsheet className="w-4 h-4 text-white" />
+                  <FileSpreadsheet className="w-4 h-4 text-apple-blue" />
                   <span className="font-bold">{importedFile.name}</span>
-                  <span className="text-[#888888] font-mono">({importedFile.size})</span>
+                  <span className="text-slate-400 font-mono">({importedFile.size})</span>
                 </div>
-                <span className={`px-2 py-0.5 font-bold uppercase text-[9px] tracking-wider border border-white/20 ${
-                  importedFile.type === "CATIA" ? "bg-blue-900" : "bg-purple-900"
+                <span className={`px-2.5 py-1 font-bold uppercase text-[9px] tracking-wider rounded border border-white/10 ${
+                  importedFile.type === "CATIA" ? "bg-blue-950" : "bg-indigo-950"
                 }`}>
                   {importedFile.type === "CATIA" ? "3D_CATIA" : "ERP_전산"}
                 </span>
@@ -187,30 +189,30 @@ export default function ExcelImporter({ onImportMockData }: ExcelImporterProps) 
               <div className="max-h-[160px] overflow-y-auto text-[11px]">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="bg-[#E9E9E5] border-b border-[#D1D1CD] text-[#555555] text-[9px] uppercase tracking-wider font-bold">
+                    <tr className="bg-apple-parchment border-b border-apple-hairline/80 text-apple-muted text-[9px] uppercase tracking-wider font-bold">
                       <th className="py-2 px-3">품목코드 (Part No.)</th>
                       <th className="py-2 px-3">식별품명</th>
                       <th className="py-2 px-3 text-center">수량</th>
                       <th className="py-2 px-3">{importedFile.type === "CATIA" ? "서브모듈" : "전산창고"}</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#D1D1CD] text-xs">
+                  <tbody className="divide-y divide-apple-hairline text-xs">
                     {importedFile.type === "CATIA" ? (
                       sampleData.CATIA.map((row, idx) => (
-                        <tr key={idx} className="hover:bg-[#F4F4F2]/30">
-                          <td className="py-2 px-3 font-mono text-[10px] text-[#555555]">{row.num}</td>
-                          <td className="py-2 px-3 font-bold text-[#1A1A1A]">{row.name}</td>
-                          <td className="py-2 px-3 text-center font-mono font-bold text-[#1A1A1A]">{row.qty} EA</td>
-                          <td className="py-2 px-3 text-[10px] text-[#666666] uppercase">{row.type}</td>
+                        <tr key={idx} className="hover:bg-apple-parchment/30">
+                          <td className="py-2 px-3 font-mono text-[10px] text-apple-muted">{row.num}</td>
+                          <td className="py-2 px-3 font-bold text-apple-ink">{row.name}</td>
+                          <td className="py-2 px-3 text-center font-mono font-bold text-apple-ink">{row.qty} EA</td>
+                          <td className="py-2 px-3 text-[10px] text-apple-muted uppercase">{row.type}</td>
                         </tr>
                       ))
                     ) : (
                       sampleData.ERP.map((row, idx) => (
-                        <tr key={idx} className="hover:bg-[#F4F4F2]/30">
-                          <td className="py-2 px-3 font-mono text-[10px] text-[#555555]">{row.num}</td>
-                          <td className="py-2 px-3 font-bold text-[#1A1A1A]">{row.name}</td>
-                          <td className="py-2 px-3 text-center font-mono font-bold text-[#1A1A1A]">{row.qty} EA</td>
-                          <td className={`py-2 px-3 text-[11px] font-serif ${row.qty === 0 ? "text-red-700 font-bold italic" : "text-[#555555]"}`}>{row.loc}</td>
+                        <tr key={idx} className="hover:bg-apple-parchment/30">
+                          <td className="py-2 px-3 font-mono text-[10px] text-apple-muted">{row.num}</td>
+                          <td className="py-2 px-3 font-bold text-apple-ink">{row.name}</td>
+                          <td className="py-2 px-3 text-center font-mono font-bold text-apple-ink">{row.qty} EA</td>
+                          <td className={`py-2 px-3 text-[11px] font-sans ${row.qty === 0 ? "text-rose-600 font-semibold italic" : "text-apple-muted"}`}>{row.loc}</td>
                         </tr>
                       ))
                     )}
@@ -219,28 +221,28 @@ export default function ExcelImporter({ onImportMockData }: ExcelImporterProps) 
               </div>
 
               {/* Confirm Import Button */}
-              <div className="p-3 bg-[#E9E9E5] border-t border-[#D1D1CD] flex justify-end gap-2">
+              <div className="p-4 bg-apple-parchment border-t border-apple-hairline/60 flex justify-end gap-2.5">
                 <button
                   id="btn-cancel-import"
                   onClick={() => setImportedFile(null)}
-                  className="px-3.5 py-1.5 border border-[#D1D1CD] bg-white hover:bg-[#F4F4F2] text-[10px] font-bold uppercase tracking-wider text-[#1A1A1A] transition-colors rounded-none cursor-pointer"
+                  className="px-4 py-2 border border-apple-hairline bg-white hover:bg-apple-parchment/60 text-xs font-semibold rounded-full cursor-pointer active-scale transition-colors"
                 >
                   지우기
                 </button>
                 <button
                   id="btn-apply-import"
                   onClick={handleApplyImport}
-                  className="px-4 py-1.5 bg-[#1A1A1A] hover:bg-neutral-800 text-white text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 transition-all rounded-none cursor-pointer"
+                  className="px-5 py-2 bg-apple-blue hover:bg-apple-focus text-white text-xs font-bold rounded-full cursor-pointer active-scale flex items-center gap-1.5 shadow-sm transition-all"
                 >
-                  정합 마스터에 병합 적용 <ArrowRight className="w-3 h-3" />
+                  정합 마스터에 병합 적용 <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>
           ) : (
-            <div className="h-[210px] border border-dashed border-[#D1D1CD] flex flex-col items-center justify-center text-center p-6 text-[#666666] bg-[#F4F4F2]/30 rounded-none" id="import-empty-state">
-              <FileSpreadsheet className="w-8 h-8 text-slate-400 mb-2" />
-              <p className="text-xs font-bold text-[#1A1A1A] uppercase tracking-wider">업로드 완료된 자재 명세가 없습니다.</p>
-              <p className="text-[10px] text-[#666666] mt-1 max-w-[250px] mx-auto leading-relaxed font-serif italic">
+            <div className="h-[210px] border border-dashed border-apple-hairline flex flex-col items-center justify-center text-center p-6 text-apple-muted bg-apple-parchment/40 rounded-2xl" id="import-empty-state">
+              <FileSpreadsheet className="w-8 h-8 text-apple-muted/60 mb-2" />
+              <p className="text-xs font-bold text-apple-ink uppercase tracking-wider">업로드 완료된 자재 명세가 없습니다.</p>
+              <p className="text-[10px] text-apple-muted mt-1 max-w-[250px] mx-auto leading-relaxed font-sans">
                 좌측 수동 시뮬레이션 버튼을 누르면 실무 데이터 파싱 가상 엑셀이 로드되어 병합을 진단할 수 있습니다.
               </p>
             </div>

@@ -10,6 +10,7 @@ export enum PartStatus {
   DISCREPANCY = "DISCREPANCY",   // 데이터 불일치 (주황)
   DEFECTIVE = "DEFECTIVE",       // 불량 반납 (적자색)
   INSPECTING = "INSPECTING",     // 수입 검사 중 (하늘색)
+  OUTBOUND = "OUTBOUND",         // 출고중
 }
 
 export enum HistoryType {

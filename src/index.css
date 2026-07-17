@@ -1,34 +1,58 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-display: "Space Grotesk", sans-serif;
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  --font-display: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
-  --font-serif: "Lora", Georgia, serif;
+
+  --color-apple-blue: #0066cc;
+  --color-apple-focus: #0071e3;
+  --color-apple-sky: #2997ff;
+  --color-apple-canvas: #ffffff;
+  --color-apple-parchment: #f5f5f7;
+  --color-apple-pearl: #fafafc;
+  --color-apple-tile-1: #1d1d1f;
+  --color-apple-tile-2: #272729;
+  --color-apple-tile-3: #252527;
+  --color-apple-ink: #1d1d1f;
+  --color-apple-muted: #86868b;
+  --color-apple-hairline: #e0e0e0;
 }
 
 /* Custom fade animations */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
+  from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
 .animate-fade-in {
-  animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: fadeIn 0.3s cubic-bezier(0.25, 1, 0.5, 1) forwards;
 }
 
 /* Base custom resets */
 body {
   font-family: var(--font-sans);
-  background-color: #F4F4F2;
-  color: #1A1A1A;
+  background-color: var(--color-apple-parchment);
+  color: var(--color-apple-ink);
+  letter-spacing: -0.011em;
+}
+
+/* Signature Apple Active click effect */
+.active-scale:active {
+  transform: scale(0.96);
+  transition: transform 0.1s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+/* The ONLY shadow in the system, reserved for product photography / renders */
+.product-shadow {
+  box-shadow: rgba(0, 0, 0, 0.15) 0px 10px 30px 0px;
 }
 
 /* Custom scrollbars for grid views */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
@@ -36,10 +60,10 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #d2d2d7;
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #86868b;
 }

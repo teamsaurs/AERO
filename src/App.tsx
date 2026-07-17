@@ -16,7 +16,7 @@ import {
   Info,
   X
 } from "lucide-react";
-import { Part, PartStatus, HistoryType, HistoryItem } from "./types";
+import { Part, PartStatus, HistoryType, HistoryItem, Employee } from "./types";
 import { INITIAL_PARTS, INITIAL_EMPLOYEES } from "./data/initialParts";
 import DesignerDashboard from "./components/DesignerDashboard";
 import FieldKiosk from "./components/FieldKiosk";
@@ -44,6 +44,17 @@ export default function App() {
     }
     return INITIAL_PARTS;
   });
+  const [employees, setEmployees] = useState<Employee[]>(() => {
+    const cached = localStorage.getItem("sync_bom_employees");
+    if (cached) {
+      try {
+        return JSON.parse(cached);
+      } catch (e) {
+        return INITIAL_EMPLOYEES;
+      }
+    }
+    return INITIAL_EMPLOYEES;
+  });
   const [selectedPartId, setSelectedPartId] = useState<string>("p2"); // Default to discrepancy part
   const [activeTab, setActiveTab] = useState<"DESIGNER" | "KIOSK" | "MANAGER" | "IMPORT">("DESIGNER");
   const [notifications, setNotifications] = useState<AlertNotification[]>([]);
@@ -68,6 +79,66 @@ export default function App() {
   const saveParts = (updatedParts: Part[]) => {
     setParts(updatedParts);
     localStorage.setItem("sync_bom_parts", JSON.stringify(updatedParts));
+  };
+
+  const saveEmployees = (updatedEmployees: Employee[]) => {
+    setEmployees(updatedEmployees);
+    localStorage.setItem("sync_bom_employees", JSON.stringify(updatedEmployees));
+  };
+
+  const handleAddEmployee = (newEmployee: Employee) => {
+    const updated = [...employees, newEmployee];
+    saveEmployees(updated);
+    
+    // Add notification
+    const newNotification: AlertNotification = {
+      id: `notif_emp_add_${Date.now()}`,
+      timestamp: new Date().toLocaleTimeString(),
+      title: "👤 신규 현장 작업자 등록 완료",
+      message: `신규 작업자 [${newEmployee.name}] (${newEmployee.department})님이 시스템에 정식 서명 인원으로 인가되었습니다.`,
+      isRead: false,
+      type: "info"
+    };
+    setNotifications(prev => [newNotification, ...prev]);
+  };
+
+  const handleToggleLocalization = (partId: string) => {
+    const updated = parts.map((p) => {
+      if (p.id === partId) {
+        const newVal = !p.isCriticalLocalPart;
+        
+        // Add notification
+        const newNotification: AlertNotification = {
+          id: `notif_local_${Date.now()}`,
+          timestamp: new Date().toLocaleTimeString(),
+          title: newVal ? "★ 국산화 부품 지정" : "☆ 국산화 지정 해제",
+          message: `부품 [${p.partName}]이 국산화 핵심 개발 부품으로 ${newVal ? "지정" : "해제"}되었습니다.`,
+          isRead: false,
+          type: "info"
+        };
+        setNotifications(prev => [newNotification, ...prev]);
+        
+        return { ...p, isCriticalLocalPart: newVal };
+      }
+      return p;
+    });
+    saveParts(updated);
+  };
+
+  const handleAddPart = (newPart: Part) => {
+    const updated = [newPart, ...parts];
+    saveParts(updated);
+    setSelectedPartId(newPart.id);
+    
+    const newNotification: AlertNotification = {
+      id: `notif_add_${Date.now()}`,
+      timestamp: new Date().toLocaleTimeString(),
+      title: "📦 신규 자재 품목 등록 완료",
+      message: `신규 자재 [${newPart.partName}] (${newPart.partNumber})가 체계 정합성 관리 마스터에 정식 등록되었습니다.`,
+      isRead: false,
+      type: "success"
+    };
+    setNotifications(prev => [newNotification, ...prev]);
   };
 
   // Toggle subscriber alert for a specific part
@@ -136,7 +207,9 @@ export default function App() {
         
         // Calculate new status based on transaction
         let newStatus = p.status;
-        if (newQty >= p.catiaQty) {
+        if (type === HistoryType.OUT) {
+          newStatus = PartStatus.OUTBOUND;
+        } else if (newQty >= p.catiaQty) {
           newStatus = PartStatus.AVAILABLE;
         } else if (newQty === 0 && p.leadTimeDays > 0) {
           newStatus = PartStatus.SHORTAGE;
@@ -303,183 +376,188 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F4F4F2] text-[#1A1A1A] flex flex-col antialiased selection:bg-[#1A1A1A] selection:text-white" id="sync-bom-app-root">
+    <div className="min-h-screen bg-apple-parchment text-apple-ink flex flex-col antialiased selection:bg-apple-blue selection:text-white" id="sync-bom-app-root">
       
-      {/* Top Banner Branding Header */}
-      <header className="bg-[#F4F4F2] border-b border-[#D1D1CD] text-[#1A1A1A] sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4.5 flex justify-between items-center">
+      {/* 1. Global Navigation Bar (Apple global-nav style) */}
+      <nav className="bg-[#000000] text-[#f5f5f7] h-11 border-b border-neutral-900 sticky top-0 z-50 select-none">
+        <div className="max-w-7xl mx-auto h-full px-4 sm:px-6 lg:px-8 flex justify-between items-center text-[12px] font-normal tracking-tight">
+          <div className="flex items-center gap-6">
+            <span className="font-semibold text-white tracking-widest text-xs font-mono">HANWHA AEROSPACE</span>
+            <span className="text-[11px] text-[#86868b] hidden md:inline">LS Division / On-Premise Secure Intranet</span>
+          </div>
           
-          {/* Logo Brand Title */}
-          <div className="flex items-baseline gap-4">
-            <h1 className="text-3xl font-black tracking-tighter uppercase italic text-[#1A1A1A]">Sync-BOM</h1>
-            <span className="text-[10px] uppercase tracking-[0.2em] font-semibold text-[#666666] hidden lg:inline">
-              Hanwha Aerospace LS Division / Field Integration Unit
+          <div className="flex items-center gap-6 font-mono text-[11px] text-[#86868b]">
+            <div className="flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
+              <span className="text-[#f5f5f7]">KIOSK_02_LIVE</span>
+            </div>
+            <span className="hidden sm:inline">|</span>
+            <span className="hidden sm:inline">AES-256 ENCRYPTED</span>
+          </div>
+        </div>
+      </nav>
+
+      {/* 2. Frosted Sub-Navigation Bar (Apple sub-nav-frosted style) */}
+      <header className="bg-apple-canvas/80 backdrop-blur-md border-b border-[#e0e0e0]/70 sticky top-11 z-40 transition-colors duration-200">
+        <div className="max-w-7xl mx-auto h-14 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+          
+          {/* Left Title Area */}
+          <div className="flex items-baseline gap-3">
+            <h1 className="text-[20px] font-semibold text-apple-ink tracking-tight">Sync-BOM</h1>
+            <span className="text-[10px] uppercase tracking-widest font-mono text-apple-muted bg-apple-parchment border border-apple-hairline px-2 py-0.5 rounded-[4px]">
+              K9-A2 BATCH_04
             </span>
           </div>
 
-          {/* Quick Metrics */}
-          <div className="hidden md:flex items-center gap-6 text-xs text-[#1A1A1A]">
-            <div className="text-right">
-              <span className="text-[#888888] font-bold block text-[9px] uppercase tracking-widest">Vehicle ID</span>
-              <span className="font-mono font-bold text-[#1A1A1A]">K9-A2_BATCH_04</span>
+          {/* Right Action/Tab-Switcher Menu (Apple Navigation Links) */}
+          <div className="flex items-center gap-2 sm:gap-4">
+            {/* Quick Status Pill */}
+            <div className="hidden lg:flex items-center gap-1 bg-apple-parchment border border-apple-hairline rounded-full px-3 py-1 text-[11px] font-medium text-apple-ink">
+              <span className="text-apple-muted">BOM 정합률:</span>
+              <span className="font-mono font-bold text-apple-blue">92.4%</span>
             </div>
-            <div className="w-px h-8 bg-[#D1D1CD]" />
-            <div className="text-right">
-              <span className="text-[#888888] font-bold block text-[9px] uppercase tracking-widest">시스템 정합</span>
-              <span className="font-mono font-bold text-[#1A1A1A]">92.4%</span>
-            </div>
-            <div className="w-px h-8 bg-[#D1D1CD]" />
-            <div className="flex flex-col items-end">
-              <span className="text-[9px] text-[#888888] font-bold uppercase tracking-widest">On-Site Kiosk 02</span>
-              <p className="text-[10px] text-green-700 font-mono tracking-tighter uppercase font-bold flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-green-600 animate-pulse inline-block"></span>
-                Live Sync Active
-              </p>
-            </div>
-          </div>
 
-          {/* Notification Alert Bell icon */}
-          <div className="relative">
-            <button
-              id="btn-open-notification-center"
-              onClick={() => {
-                setShowNotificationPanel(!showNotificationPanel);
-                if (!showNotificationPanel) markAllAsRead();
-              }}
-              className="p-2 text-[#1A1A1A] hover:bg-white border border-[#D1D1CD] transition-all relative flex items-center justify-center cursor-pointer"
-            >
-              <Bell className="w-4 h-4" />
-              {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#1A1A1A] text-white text-[9px] font-black flex items-center justify-center">
-                  {unreadCount}
-                </span>
-              )}
-            </button>
+            {/* Notification Badge Bell */}
+            <div className="relative">
+              <button
+                id="btn-open-notification-center"
+                onClick={() => {
+                  setShowNotificationPanel(!showNotificationPanel);
+                  if (!showNotificationPanel) markAllAsRead();
+                }}
+                className="p-2 text-apple-ink hover:bg-apple-parchment rounded-full transition-all relative flex items-center justify-center cursor-pointer active-scale"
+              >
+                <Bell className="w-[18px] h-[18px]" />
+                {unreadCount > 0 && (
+                  <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-apple-blue rounded-full"></span>
+                )}
+              </button>
 
-            {/* Notification drop panel */}
-            {showNotificationPanel && (
-              <div className="absolute right-0 mt-3 w-80 md:w-96 bg-white border border-[#D1D1CD] shadow-lg z-50 text-[#1A1A1A]" id="notification-center-dropdown">
-                <div className="bg-[#1A1A1A] text-white px-4 py-3 flex justify-between items-center">
-                  <span className="text-xs font-bold flex items-center gap-1.5 tracking-widest uppercase">
-                    <Bell className="w-3.5 h-3.5 text-white" /> 실시간 통합 알림 로그
-                  </span>
-                  <button 
-                    onClick={() => setShowNotificationPanel(false)}
-                    className="text-slate-400 hover:text-white cursor-pointer"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-                <div className="divide-y divide-[#D1D1CD] max-h-80 overflow-y-auto bg-[#F4F4F2]/20">
-                  {notifications.length === 0 ? (
-                    <div className="p-6 text-center text-xs text-slate-400">
-                      신규 알림 로그가 없습니다.
-                    </div>
-                  ) : (
-                    notifications.map(notif => (
-                      <div key={notif.id} className="p-3.5 hover:bg-[#F4F4F2]/50 text-xs text-[#1A1A1A]">
-                        <div className="flex justify-between items-center mb-1">
-                          <span className={`px-1.5 py-0.5 font-bold rounded text-[9px] ${
-                            notif.type === "success" 
-                              ? "bg-emerald-50 text-emerald-800 border border-emerald-100" 
-                              : notif.type === "warning"
-                              ? "bg-amber-50 text-amber-800 border border-amber-100"
-                              : "bg-blue-50 text-blue-800 border border-blue-100"
-                          }`}>
-                            {notif.type}
-                          </span>
-                          <span className="font-mono text-[9px] text-[#888888]">{notif.timestamp}</span>
-                        </div>
-                        <h5 className="font-bold text-[#1A1A1A] leading-tight mb-1">{notif.title}</h5>
-                        <p className="text-slate-500 text-[11px] leading-relaxed">{notif.message}</p>
+              {/* Notification drop panel */}
+              {showNotificationPanel && (
+                <div className="absolute right-0 mt-3 w-80 md:w-96 bg-apple-canvas border border-apple-hairline shadow-2xl z-50 text-apple-ink rounded-2xl overflow-hidden" id="notification-center-dropdown">
+                  <div className="bg-[#1d1d1f] text-white px-4 py-3.5 flex justify-between items-center">
+                    <span className="text-xs font-bold flex items-center gap-1.5 tracking-widest uppercase">
+                      <Bell className="w-3.5 h-3.5 text-apple-sky" /> 실시간 통합 알림 로그
+                    </span>
+                    <button 
+                      onClick={() => setShowNotificationPanel(false)}
+                      className="text-[#86868b] hover:text-white cursor-pointer"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <div className="divide-y divide-apple-hairline max-h-80 overflow-y-auto">
+                    {notifications.length === 0 ? (
+                      <div className="p-6 text-center text-xs text-apple-muted italic">
+                        신규 알림 로그가 없습니다.
                       </div>
-                    ))
-                  )}
+                    ) : (
+                      notifications.map(notif => (
+                        <div key={notif.id} className="p-4 hover:bg-apple-parchment/50 text-xs">
+                          <div className="flex justify-between items-center mb-1">
+                            <span className={`px-2 py-0.5 text-[9px] font-semibold rounded-full border ${
+                              notif.type === "success" 
+                                ? "bg-emerald-50 text-emerald-800 border-emerald-100" 
+                                : notif.type === "warning"
+                                ? "bg-amber-50 text-amber-800 border-amber-100"
+                                : "bg-blue-50 text-blue-800 border-blue-100"
+                            }`}>
+                              {notif.type.toUpperCase()}
+                            </span>
+                            <span className="font-mono text-[9px] text-apple-muted">{notif.timestamp}</span>
+                          </div>
+                          <h5 className="font-semibold text-apple-ink leading-tight mb-1">{notif.title}</h5>
+                          <p className="text-apple-muted text-[11px] leading-relaxed">{notif.message}</p>
+                        </div>
+                      ))
+                    )}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
 
         </div>
       </header>
 
-      {/* Role Navigation Switcher (Tabs) */}
-      <section className="bg-[#E9E9E5]/60 border-b border-[#D1D1CD] py-4" id="role-selector-tabs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4">
+      {/* 3. Segmented Role Control Unit (Apple custom switcher bar) */}
+      <section className="bg-apple-canvas border-b border-apple-hairline py-3" id="role-selector-tabs">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-3">
           
-          {/* Tabs switch */}
-          <div className="flex flex-wrap gap-1">
+          {/* Segmented Pill Switcher */}
+          <div className="bg-[#f5f5f7] p-1 rounded-full flex gap-1 border border-apple-hairline/60">
             {/* DESIGNER */}
             <button
               id="tab-btn-designer"
               onClick={() => setActiveTab("DESIGNER")}
-              className={`px-5 py-2.5 text-xs font-bold uppercase tracking-wider border transition-all cursor-pointer ${
+              className={`px-5 py-2 rounded-full text-xs font-medium tracking-tight transition-all active-scale cursor-pointer ${
                 activeTab === "DESIGNER"
-                  ? "bg-[#1A1A1A] border-[#1A1A1A] text-white"
-                  : "bg-transparent border-transparent text-[#1A1A1A] hover:bg-white/50"
+                  ? "bg-white text-apple-ink shadow-sm font-semibold"
+                  : "text-apple-muted hover:text-apple-ink"
               }`}
             >
-              체계기 설계자 모드
+              설계자 대시보드
             </button>
 
             {/* KIOSK */}
             <button
               id="tab-btn-kiosk"
               onClick={() => setActiveTab("KIOSK")}
-              className={`px-5 py-2.5 text-xs font-bold uppercase tracking-wider border transition-all cursor-pointer ${
+              className={`px-5 py-2 rounded-full text-xs font-medium tracking-tight transition-all active-scale cursor-pointer ${
                 activeTab === "KIOSK"
-                  ? "bg-[#1A1A1A] border-[#1A1A1A] text-white"
-                  : "bg-transparent border-transparent text-[#1A1A1A] hover:bg-white/50"
+                  ? "bg-white text-apple-ink shadow-sm font-semibold"
+                  : "text-apple-muted hover:text-apple-ink"
               }`}
             >
-              현장 간편 키오스크
+              현장 키오스크
             </button>
 
             {/* MANAGER */}
             <button
               id="tab-btn-manager"
               onClick={() => setActiveTab("MANAGER")}
-              className={`px-5 py-2.5 text-xs font-bold uppercase tracking-wider border transition-all cursor-pointer ${
+              className={`px-5 py-2 rounded-full text-xs font-medium tracking-tight transition-all active-scale cursor-pointer ${
                 activeTab === "MANAGER"
-                  ? "bg-[#1A1A1A] border-[#1A1A1A] text-white"
-                  : "bg-transparent border-transparent text-[#1A1A1A] hover:bg-white/50"
+                  ? "bg-white text-apple-ink shadow-sm font-semibold"
+                  : "text-apple-muted hover:text-apple-ink"
               }`}
             >
-              생산 종합 모니터단
+              생산 종합 모니터링
             </button>
 
             {/* IMPORT */}
             <button
               id="tab-btn-import"
               onClick={() => setActiveTab("IMPORT")}
-              className={`px-5 py-2.5 text-xs font-bold uppercase tracking-wider border transition-all cursor-pointer ${
+              className={`px-5 py-2 rounded-full text-xs font-medium tracking-tight transition-all active-scale cursor-pointer ${
                 activeTab === "IMPORT"
-                  ? "bg-[#1A1A1A] border-[#1A1A1A] text-white"
-                  : "bg-transparent border-transparent text-[#1A1A1A] hover:bg-white/50"
+                  ? "bg-white text-apple-ink shadow-sm font-semibold"
+                  : "text-apple-muted hover:text-apple-ink"
               }`}
             >
-              BOM 외부 병합 (Step 1)
+              자재 보고서 병합
             </button>
           </div>
 
-          {/* Quick Notice */}
-          <div className="text-[11px] text-[#555] font-serif italic flex items-center gap-1.5 bg-white/40 border border-[#D1D1CD] px-3.5 py-2">
-            <Info className="w-3.5 h-3.5 text-[#1a1a1a] shrink-0" />
+          {/* Quick Informational Guide Link */}
+          <div className="text-[11px] text-apple-muted flex items-center gap-1.5 font-normal">
+            <Info className="w-3.5 h-3.5 text-apple-blue shrink-0" />
             <span>
-              {activeTab === "DESIGNER" && "설계 모델과 전산/창고 실물 정밀 대조 및 메신저 알림을 관리합니다."}
-              {activeTab === "KIOSK" && "작업자들이 장갑을 낀 상태에서 터치식으로 입출고를 기록하는 키오스크입니다."}
-              {activeTab === "MANAGER" && "LS사업부 조립공정 지연 예방을 위한 생산 부족(Shortage) 종합 현황판입니다."}
-              {activeTab === "IMPORT" && "ERP 보고서 엑셀 덤프를 가상 업로드하여 일괄 정합성 분석을 시뮬레이션합니다."}
+              {activeTab === "DESIGNER" && "CATIA 3D 도면, ERP 전산 원장, 현장 실물 가용 상태를 대조 진단합니다."}
+              {activeTab === "KIOSK" && "작업자들이 부품 입출고 및 실물 불량 이관을 현장 원터치로 캡처하는 단말입니다."}
+              {activeTab === "MANAGER" && "결품 공급망 일정 위험 및 전산 오차를 시각 진단하는 실시간 관제판입니다."}
+              {activeTab === "IMPORT" && "원시 덤프 보고서(BOM/ERP)를 파싱하여 신규 품목과 정합 상태를 동기화합니다."}
             </span>
           </div>
 
         </div>
       </section>
 
-      {/* Main Body Stage Container */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      {/* 4. Main Body Canvas */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
-        {/* Core View Switch Render */}
+        {/* Core Component Render Stack */}
         <div className="animate-fade-in">
           {activeTab === "DESIGNER" && (
             <DesignerDashboard
@@ -488,14 +566,17 @@ export default function App() {
               onSelectPart={setSelectedPartId}
               onToggleAlert={handleToggleAlert}
               onAddComment={handleAddComment}
+              onAddPart={handleAddPart}
+              onToggleLocalization={handleToggleLocalization}
             />
           )}
 
           {activeTab === "KIOSK" && (
             <FieldKiosk
               parts={parts}
-              employees={INITIAL_EMPLOYEES}
+              employees={employees}
               onUpdatePartStock={handleUpdatePartStock}
+              onAddEmployee={handleAddEmployee}
             />
           )}
 
@@ -504,7 +585,7 @@ export default function App() {
               parts={parts}
               onSelectPart={(id) => {
                 setSelectedPartId(id);
-                setActiveTab("DESIGNER"); // Jump back to detailed view
+                setActiveTab("DESIGNER");
               }}
               onResetData={handleResetData}
             />
@@ -519,20 +600,40 @@ export default function App() {
 
       </main>
 
-      {/* Footer Branding */}
-      <footer className="px-8 py-5 bg-[#E9E9E5] border-t border-[#D1D1CD] flex flex-col md:flex-row justify-between items-center gap-4 text-xs">
-        <div className="flex flex-wrap gap-x-8 gap-y-1 text-[9px] uppercase tracking-[0.2em] font-bold text-[#666666]">
-          <span>01 : DB INTEGRATION OK</span>
-          <span>02 : ERP SYNC (L-3 MINS)</span>
-          <span>03 : PLM CATIA V6 CONNECTED</span>
-        </div>
-        <div className="flex items-center gap-4 text-[9px] text-[#666666] font-medium">
-          <span className="font-mono">SYSTEM_LOG_REF: 2026-07-16_SEOUL_HV_CORE</span>
-          <span className="w-px h-3 bg-[#D1D1CD]"></span>
-          <span className="flex items-center gap-1">
-            <ShieldCheck className="w-3.5 h-3.5 text-[#1A1A1A]" />
-            <span>방산 기술 보호 규정 준수 (On-Premise Closed Server Prototype Mode)</span>
-          </span>
+      {/* 5. Editorial Footer (Apple style) */}
+      <footer className="bg-apple-parchment border-t border-[#e0e0e0] py-12 px-4 sm:px-6 lg:px-8 select-none">
+        <div className="max-w-7xl mx-auto space-y-8">
+          
+          {/* Fine print legal block */}
+          <div className="text-[11px] text-apple-muted leading-relaxed space-y-2 border-b border-[#e0e0e0]/70 pb-6">
+            <p>
+              * 본 Sync-BOM 웹 단말 시스템은 한화에어로스페이스 LS사업부 전용 폐쇄망 시험용 프로토타입 인터페이스입니다.
+              CATIA V6 3D 설계 모델의 원시 BOM 정보와 SAP ERP 자재정보를 실시간으로 비교 분석하여 현장 불일치를 방지하는 것을 목적으로 합니다.
+            </p>
+            <p>
+              * 모든 자재 캡처 증적 데이터 및 작업 서명 로그는 군수물자 무단 반출입 방지 조항 및 방위산업 기술 보호법에 의거하여 암호화 세션에 영구 기록됩니다.
+            </p>
+          </div>
+
+          {/* Quick Metrics & System Metadata */}
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 text-[11px] text-apple-muted font-normal">
+            <div className="flex flex-wrap gap-x-6 gap-y-1 uppercase tracking-wider font-mono">
+              <span className="flex items-center gap-1.5">
+                <span className="w-1 h-1 rounded-full bg-emerald-500"></span> DB INTEGRATION OK
+              </span>
+              <span>• ERP BATCH_DELAY: &lt; 3 MINS</span>
+              <span>• CATIA PLM V6 COMPATIBLE</span>
+            </div>
+            
+            <div className="flex flex-col md:items-end gap-1">
+              <p className="font-mono text-[10px]">SEC_LOG_HASH: 2026-07-16_SEOUL_HV_CORE_PROT</p>
+              <p className="flex items-center gap-1 text-apple-ink font-medium mt-0.5">
+                <ShieldCheck className="w-4 h-4 text-apple-blue" />
+                <span>국가핵심기술 기술보호 규정 준수 (On-Premise Closed Server Prototype Mode)</span>
+              </p>
+            </div>
+          </div>
+          
         </div>
       </footer>
 
