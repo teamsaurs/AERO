@@ -1,0 +1,6 @@
+{
+  "name": "Sync-BOM",
+  "description": "한화에어로스페이스 LS사업부 특화 부품 현황 통합 관리 웹앱. CATIA, ERP/PLM 데이터와 현장 창고 상태 간의 정합성을 실시간으로 확인하고 간편하게 업데이트합니다.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
